@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placar Eletrônico - Partidas ao Vivo</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header class="lobby-header">
+        <div class="header-content">
+            <h1>Placar Eletrônico</h1>
+            <p>Acompanhe em tempo real as partidas acontecendo agora.</p>
+            <div class="header-actions">
+                <a href="/placar" class="primary-btn">Acessar Placar Eletrônico</a>
+            </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">
+                        <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"></path></svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Buscar por times ou nome da partida...">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="lobby-container">
+        <div id="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Buscando partidas ao vivo...</p>
+        </div>
+
+        <div id="no-games" class="empty-state hidden">
+            <div class="empty-icon">📡</div>
+            <h2 id="empty-title">Nenhuma partida no momento</h2>
+            <p id="empty-desc">Quando um jogo for iniciado no aplicativo, ele aparecerá aqui.</p>
+        </div>
+
+        <div id="games-grid" class="games-grid">
+            <!-- Os cards serão inseridos aqui pelo JS -->
+        </div>
+    </main>
+
+    <footer class="lobby-footer">
+        Desenvolvido por Adimael S. | <a href="https://github.com/adimael" target="_blank">github.com/adimael</a>
+    </footer>
+
+    <script>
+        // Substitua pelo endereço correto caso não esteja usando a VPS ainda,
+        // mas este já é o formato esperado em produção com a rota configurada.
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3000/api/rooms' 
+            : 'https://placar.vupi.us/api/rooms';
+            
+        const POLL_INTERVAL = 3000; // Atualiza a cada 3 segundos
+        
+        const dom = {
+            loading: document.getElementById('loading'),
+            noGames: document.getElementById('no-games'),
+            emptyTitle: document.getElementById('empty-title'),
+            emptyDesc: document.getElementById('empty-desc'),
+            grid: document.getElementById('games-grid'),
+            searchInput: document.getElementById('search-input'),
+        };
+
+        let allRooms = [];
+
+        function renderGameCard(room) {
+            const state = room.lastState || {};
+            
+            const teamA = state.teamAName || 'TIME A';
+            const teamB = state.teamBName || 'TIME B';
+            const scoreA = state.scoreA !== undefined ? state.scoreA : 0;
+            const scoreB = state.scoreB !== undefined ? state.scoreB : 0;
+            
+            const colorA = state.teamAColor || '#00E5FF';
+            const colorB = state.teamBColor || '#FF1744';
+            
+            let chrono = '00:00';
+            let chronoClass = 'chrono paused';
+            if (state.chronoSeconds !== undefined) {
+                const m = Math.floor(state.chronoSeconds / 60).toString().padStart(2, '0');
+                const s = (state.chronoSeconds % 60).toString().padStart(2, '0');
+                chrono = `${m}:${s}`;
+                if (state.chronoRunning) chronoClass = 'chrono running';
+            }
+
+            const title = room.roomName || 'Partida em andamento';
+            const desc = room.roomDesc || '';
+
+            return `
+                <div class="game-card">
+                    <div class="card-header">
+                        <div class="card-badges">
+                            <span class="badge live">AO VIVO</span>
+                            <span class="badge viewers">👁 ${room.listenersCount}</span>
+                        </div>
+                        <h3 class="game-title">${title}</h3>
+                        ${desc ? `<p class="game-desc">${desc}</p>` : ''}
+                    </div>
+                    
+                    <div class="card-score-area">
+                        <div class="team team-a">
+                            <div class="team-color" style="background: ${colorA}; box-shadow: 0 0 10px ${colorA}80"></div>
+                            <span class="team-name">${teamA}</span>
+                        </div>
+                        
+                        <div class="score-center">
+                            <div class="score-display">
+                                <span class="score" style="color: ${colorA}">${scoreA}</span>
+                                <span class="score-sep">×</span>
+                                <span class="score" style="color: ${colorB}">${scoreB}</span>
+                            </div>
+                            <div class="${chronoClass}">${chrono}</div>
+                        </div>
+                        
+                        <div class="team team-b">
+                            <span class="team-name">${teamB}</span>
+                            <div class="team-color" style="background: ${colorB}; box-shadow: 0 0 10px ${colorB}80"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <a href="/placar.html?sala=${room.roomCode}" class="watch-btn">Assistir Partida</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        let currentPage = 1;
+        let isFetching = false;
+        let hasMore = true;
+        const LIMIT = 12;
+
+        function renderGameCards(rooms) {
+            const html = rooms.map(renderGameCard).join('');
+            if (currentPage === 1) {
+                dom.grid.innerHTML = html;
+            } else {
+                dom.grid.insertAdjacentHTML('beforeend', html);
+            }
+        }
+
+        function updateEmptyState(searchTerm, total) {
+            if (total === 0) {
+                if (searchTerm) {
+                    dom.emptyTitle.textContent = 'Nenhuma partida encontrada';
+                    dom.emptyDesc.textContent = `Não encontramos resultados para "${searchTerm}".`;
+                } else {
+                    dom.emptyTitle.textContent = 'Nenhuma partida no momento';
+                    dom.emptyDesc.textContent = 'Quando um jogo for iniciado no aplicativo, ele aparecerá aqui.';
+                }
+                dom.noGames.classList.remove('hidden');
+            } else {
+                dom.noGames.classList.add('hidden');
+            }
+        }
+
+        async function fetchGames(reset = false) {
+            if (isFetching || (!hasMore && !reset)) return;
+            
+            if (reset) {
+                currentPage = 1;
+                allRooms = [];
+                hasMore = true;
+                dom.grid.innerHTML = '';
+                dom.loading.style.display = 'block';
+                dom.noGames.classList.add('hidden');
+            }
+
+            isFetching = true;
+            try {
+                const url = new URL(API_URL);
+                url.searchParams.append('page', currentPage);
+                url.searchParams.append('limit', LIMIT);
+                
+                const searchTerm = dom.searchInput.value.trim();
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Network error');
+                
+                const response = await res.json();
+                
+                // If it's the old API format (array), handle it gracefully
+                let rooms = [];
+                if (Array.isArray(response)) {
+                    rooms = response;
+                    hasMore = false;
+                } else {
+                    rooms = response.data;
+                    hasMore = response.pagination.hasMore;
+                }
+
+                // Client-side search filtering (since backend doesn't search yet)
+                if (searchTerm) {
+                    rooms = rooms.filter(room => {
+                        const state = room.lastState || {};
+                        const tA = (state.teamAName || '').toLowerCase();
+                        const tB = (state.teamBName || '').toLowerCase();
+                        const rName = (room.roomName || '').toLowerCase();
+                        const rDesc = (room.roomDesc || '').toLowerCase();
+                        const term = searchTerm.toLowerCase();
+                        return tA.includes(term) || tB.includes(term) || rName.includes(term) || rDesc.includes(term);
+                    });
+                }
+                
+                allRooms = reset ? rooms : [...allRooms, ...rooms];
+                renderGameCards(rooms);
+                updateEmptyState(searchTerm, allRooms.length);
+                
+                if (hasMore) currentPage++;
+
+            } catch (error) {
+                console.error('Erro ao buscar jogos:', error);
+            } finally {
+                isFetching = false;
+                dom.loading.style.display = 'none';
+            }
+        }
+
+        let searchTimeout;
+        dom.searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => fetchGames(true), 300);
+        });
+
+        // Intersection Observer for Infinite Scrolling
+        const sentinel = document.createElement('div');
+        sentinel.style.height = '10px';
+        document.querySelector('main').appendChild(sentinel);
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isFetching && hasMore) {
+                fetchGames();
+            }
+        }, { rootMargin: '200px' });
+        observer.observe(sentinel);
+
+        async function silentPoll() {
+            if (isFetching) return;
+            try {
+                const url = new URL(API_URL);
+                url.searchParams.append('page', 1);
+                url.searchParams.append('limit', currentPage * LIMIT);
+                
+                const res = await fetch(url);
+                if (!res.ok) return;
+                
+                const response = await res.json();
+                let rooms = Array.isArray(response) ? response : response.data;
+                
+                const searchTerm = dom.searchInput.value.trim();
+                if (searchTerm) {
+                    rooms = rooms.filter(room => {
+                        const state = room.lastState || {};
+                        const tA = (state.teamAName || '').toLowerCase();
+                        const tB = (state.teamBName || '').toLowerCase();
+                        const rName = (room.roomName || '').toLowerCase();
+                        const rDesc = (room.roomDesc || '').toLowerCase();
+                        const term = searchTerm.toLowerCase();
+                        return tA.includes(term) || tB.includes(term) || rName.includes(term) || rDesc.includes(term);
+                    });
+                }
+                
+                const newHtml = rooms.map(renderGameCard).join('');
+                if (dom.grid.innerHTML !== newHtml) {
+                    allRooms = rooms;
+                    dom.grid.innerHTML = newHtml;
+                    updateEmptyState(searchTerm, allRooms.length);
+                }
+            } catch (error) {}
+        }
+
+        // Init
+        fetchGames(true);
+        setInterval(silentPoll, POLL_INTERVAL);
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Placar Eletrônico Digital">
+    <title>Placar Eletrônico</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Scan lines overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Ambient glow effects -->
+    <div class="ambient-glow glow-left"></div>
+    <div class="ambient-glow glow-right"></div>
+    <div class="ambient-glow glow-top"></div>
+
+    <!-- Main board -->
+    <div class="board">
+
+        <!-- ===== HEADER ===== -->
+        <header class="board-header" id="board-header">
+            <div class="header-border-glow"></div>
+            <div class="header-inner">
+                <img 
+                    src="" 
+                    alt="Logo do Campeonato" 
+                    class="header-logo" 
+                    id="header-logo"
+                    style="display: none;"
+                >
+                <div class="header-text">
+                    <h1 class="institution-name">Campeonato Local</h1>
+                    <p class="campus-name">Fase de Grupos</p>
+                </div>
+            </div>
+            <div class="header-led-strip">
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+                <span class="led-dot"></span><span class="led-dot"></span><span class="led-dot"></span>
+            </div>
+        </header>
+
+        <!-- ===== SCORE AREA ===== -->
+        <main class="score-area" id="score-area">
+
+            <!-- Team A -->
+            <div class="team-section team-a-section" id="team-a-section">
+                <div class="team-name-container">
+                    <span class="team-name" id="team-a-name">TIME A</span>
+                </div>
+                <div class="score-block team-a-score-block" id="team-a-score-block">
+                    <div class="score-digit-bg">88</div>
+                    <span class="score-digit" id="team-a-score">0</span>
+                    <div class="score-led-border"></div>
+                </div>
+            </div>
+
+            <!-- VS / Center Separator -->
+            <div class="center-divider">
+                <div class="vs-line-top"></div>
+                <div class="vs-badge">
+                    <span class="vs-x">✕</span>
+                </div>
+                <div class="vs-line-bottom"></div>
+            </div>
+
+            <!-- Team B -->
+            <div class="team-section team-b-section" id="team-b-section">
+                <div class="team-name-container">
+                    <span class="team-name" id="team-b-name">TIME B</span>
+                </div>
+                <div class="score-block team-b-score-block" id="team-b-score-block">
+                    <div class="score-digit-bg">88</div>
+                    <span class="score-digit" id="team-b-score">0</span>
+                    <div class="score-led-border"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ===== CHRONOMETER ===== -->
+        <section class="chrono-area" id="chrono-area">
+            <div class="chrono-border-top"></div>
+            <div class="chrono-label">CRONÔMETRO</div>
+            <div class="chrono-display" id="chrono-display">
+                <div class="chrono-digit-group">
+                    <span class="chrono-digit-bg">88</span>
+                    <span class="chrono-digit" id="chrono-min">00</span>
+                </div>
+                <span class="chrono-separator" id="chrono-sep">:</span>
+                <div class="chrono-digit-group">
+                    <span class="chrono-digit-bg">88</span>
+                    <span class="chrono-digit" id="chrono-sec">00</span>
+                </div>
+            </div>
+            <div class="chrono-led-strip">
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+                <span class="led-dot amber"></span><span class="led-dot amber"></span><span class="led-dot amber"></span>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Score pop effect container -->
+    <div class="score-pop-overlay" id="score-pop-overlay"></div>
+
+    <div class="connection-overlay" id="connection-overlay">
+        <div class="connection-modal">
+            <div class="connection-icon">📡</div>
+            <h2 class="connection-title">Conectar ao Aplicativo</h2>
+            <p class="connection-desc">Digite o <strong>Código do Placar (Nuvem)</strong> ou o <strong>IP Local</strong></p>
+            <div class="connection-input-group">
+                <input 
+                    type="text" 
+                    id="server-ip" 
+                    placeholder="Ex: A7B9X ou 192.168.0.1" 
+                    class="connection-input"
+                    autocomplete="off"
+                    style="text-align: center; font-weight: 700; letter-spacing: 2px;"
+                >
+                <span class="connection-colon" id="port-colon" style="display:none;">:</span>
+                <input 
+                    type="number" 
+                    id="server-port" 
+                    placeholder="8080" 
+                    value="8080"
+                    class="connection-input-port"
+                    autocomplete="off"
+                    style="display:none;"
+                >
+            </div>
+            <button id="connect-btn" class="connection-btn">Conectar</button>
+            <p class="connection-status" id="connection-status"></p>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
