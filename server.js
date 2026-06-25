@@ -2,6 +2,8 @@
 
 // Configurações e Módulos do Sistema
 const ambiente = require('./src/config/ambiente');
+const rotasApi = require('./src/rotas/api');
+const websocketGerenciador = require('./src/websocket/gerenciador');
 
 // Criação do Servidor HTTP principal, que vai delegar o trabalho para as rotas
 const servidor = http.createServer((requisicao, resposta) => {
