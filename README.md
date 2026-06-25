@@ -30,8 +30,8 @@ Para rodar este projeto, você precisará ter instalado em sua máquina ou servi
 
 **1. Clone este repositório**
 ```bash
-git clone https://github.com/SEU-USUARIO/placar-eletronico-server.git
-cd placar-eletronico-server
+git clone https://github.com/adimael/placar_server.git
+cd placar_server
 ```
 
 **2. Instale as dependências do Node**
