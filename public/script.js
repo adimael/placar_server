@@ -313,8 +313,12 @@
 
         // Cronômetro
         if (dados.segundosCronometro !== undefined) {
-            segundosCronometroLocal = dados.segundosCronometro;
-            atualizarInterfaceCronometro();
+            // Sincroniza apenas se a diferença for significativa (> 2s) ou se o cronômetro estiver parado
+            // Isso evita "engasgos" ou pulos no cronômetro causados por pequenos atrasos de rede
+            if (!dados.cronometroRodando || Math.abs(segundosCronometroLocal - dados.segundosCronometro) > 2) {
+                segundosCronometroLocal = dados.segundosCronometro;
+                atualizarInterfaceCronometro();
+            }
         }
 
         if (dados.cronometroRodando !== undefined) {
